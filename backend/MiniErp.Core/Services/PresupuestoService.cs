@@ -24,13 +24,25 @@ public class PresupuestoService
     public Totales CalcularTotales(Presupuesto presupuesto)
     {
         decimal subtotal = 0m;
+        decimal iva = 0m;
+
         foreach (var item in presupuesto.Items)
         {
-            var subtotalLinea = item.Cantidad * item.PrecioUnitario * (1 - item.DescuentoPct / 100m);
+            var subtotalLinea = item.Cantidad
+                * item.PrecioUnitario
+                * (1 - item.DescuentoPct / 100m);
+
             subtotal += subtotalLinea;
+
+            var ivaLinea = Math.Round(
+                subtotalLinea * (item.AlicuotaIva / 100m),
+                2,
+                MidpointRounding.AwayFromZero
+            );
+
+            iva += ivaLinea;
         }
 
-        var iva = subtotal * 0.21m;
         var total = subtotal + iva;
 
         return new Totales(subtotal, iva, total);
