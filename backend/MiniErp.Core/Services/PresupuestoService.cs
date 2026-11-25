@@ -53,6 +53,9 @@ public class PresupuestoService
         if (items.Count == 0)
             throw new InvalidOperationException("El presupuesto debe tener al menos un artículo.");
 
+        if (items.Any(i => i.Cantidad <= 0))
+            throw new InvalidOperationException("La cantidad de los artículos debe ser mayor a cero.");
+
         items = items
             .GroupBy(i => i.ArticuloId)
             .Select(g =>

@@ -98,5 +98,26 @@ namespace MiniErp.Tests
                 )
             );
         }
+
+        [Fact]
+        public async Task CrearPresupuesto_CantidadCero_LanzaExcepcion()
+        {
+            var (_, db) = Armar();
+            var numeracion = new NumeracionService(db);
+            var presupuestos = new PresupuestoService(db, numeracion);
+
+            var (art, _) = await SeedPresupuesto(db, stock: 100, cantidad: 1);
+
+            var items = new List<PresupuestoItem>
+            {
+                new() { ArticuloId = art.Id, Cantidad = 0 }
+            };
+
+            var cliente = await db.Clientes.FirstAsync();
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => presupuestos.CrearAsync(cliente.Id, 30, items)
+            );
+        }
     }
 }

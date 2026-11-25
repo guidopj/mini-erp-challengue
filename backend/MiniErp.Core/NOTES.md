@@ -82,3 +82,21 @@ para acumular sus cantidades antes de crear el presupuesto.
 **Test:**
 
 Verifiqué que al agregar el mismo artículo con cantidades 6 y 4, se genere un único ítem con cantidad 10.
+
+### Bug encontrado: Cantidad cero o negativa en los artículos de un presupuesto
+
+**Qué pasaba:**
+
+Se podían crear presupuestos con artículos cuya cantidad era cero o negativa.
+
+**Por qué pasaba:**
+
+`CrearAsync()` no validaba que la cantidad de los artículos fuera mayor a cero antes de crear el presupuesto.
+
+**Cómo lo solucioné:**
+
+Agregué una validación con `Any()` para comprobar que ningún artículo tenga una cantidad menor o igual a cero.
+
+**Test:**
+
+Verifiqué que al intentar crear un presupuesto con cantidad cero o negativa se lance una `InvalidOperationException`.
