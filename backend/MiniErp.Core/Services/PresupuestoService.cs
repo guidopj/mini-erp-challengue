@@ -50,6 +50,18 @@ public class PresupuestoService
 
     public async Task<Presupuesto> CrearAsync(int clienteId, int validezDias, List<PresupuestoItem> items)
     {
+        if (items.Count == 0)
+            throw new InvalidOperationException("El presupuesto debe tener al menos un artículo.");
+
+        items = items
+            .GroupBy(i => i.ArticuloId)
+            .Select(g =>
+            {   
+                var item = g.First();
+                item.Cantidad = g.Sum(i => i.Cantidad);
+                return item;
+            }).ToList();
+
         foreach (var item in items)
         {
             var articulo = await _db.Articulos.FirstOrDefaultAsync(a => a.Id == item.ArticuloId)

@@ -63,3 +63,22 @@ en memoria por el contexto y pueden persistir o reutilizarse en consultas poster
 dentro del mismo DbContext, generando valores indeseados.
 
 Al separar los recorridos, si falla una validación, no se modifica ningún stock.
+
+### Bug encontrado: Artículos duplicados en un presupuesto
+
+**Qué pasaba:**
+
+Al agregar dos veces el mismo artículo a un presupuesto, se generaban dos ítems separados en lugar de sumar sus cantidades.
+
+**Por qué pasaba:**
+
+`CrearAsync()` recibía la lista de artículos y la asignaba directamente al presupuesto, sin agrupar los artículos repetidos.
+
+**Cómo lo solucioné:**
+
+Agregué un `GroupBy()` por `ArticuloId` para agrupar los artículos repetidos y un `Sum()` 
+para acumular sus cantidades antes de crear el presupuesto.
+
+**Test:**
+
+Verifiqué que al agregar el mismo artículo con cantidades 6 y 4, se genere un único ítem con cantidad 10.
