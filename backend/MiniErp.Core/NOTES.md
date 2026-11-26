@@ -152,3 +152,39 @@ Si el cliente no existe, se lanza una `InvalidOperationException` con el mensaje
 
 - `CrearPresupuesto_ClienteInexistente_LanzaExcepcion`: verifica que se lance una excepción cuando el cliente no existe.
 - `CrearPresupuesto_ClienteExistente_AsociaCliente`: verifica que el presupuesto quede asociado al cliente existente.
+
+
+**Decisiones del cliente React (estructura, librerías, cómo calculás los totales en vivo).**
+
+Para el frontend usé Next.js, React y TypeScript. Para la interfaz utilicé Material UI (MUI), 
+que ofrece componentes listos para usar, como tablas, formularios, botones y alertas.
+
+Organicé el código separando los componentes, hooks, servicios, tipos y funciones auxiliares. 
+La idea fue mantener cada parte ordenada, facilitar su mantenimiento y evitar repetir código.
+
+Los totales se actualizan en vivo cuando agrego un artículo o modifico su cantidad o descuento. 
+Se calcula el subtotal de cada artículo, se aplica el descuento y luego se calcula el IVA según la alícuota 
+correspondiente. Finalmente, se suman los importes para mostrar el total del presupuesto.
+
+También agregué tests para comprobar que los componentes y la lógica funcionen correctamente.
+
+**Qué hiciste y qué dejaste afuera, y cómo priorizaste.**
+
+solo dejé afuera lo de los reportes porque no eran mandatorios y prioricé entregarlo con aire en cuanto a tiempo.
+Hice todo el resto.
+
+**Cómo usaste IA: para qué partes, qué le pediste, qué aceptaste y qué descartaste, 
+y dónde se equivocó. (Usar IA está permitido y lo valoramos. Lo que evaluamos es tu criterio al usarla.)**
+
+la IA me ayudó mayormente con el cálculo de los totales en vivo y los tests mas que nada en front ya que en back eran
+bastante repetitivos y al no arrancar de cero tenia de donde aferrarme. No se equivocaba pero si retornaba una solución o fix
+no acorde con lo que el proyecto necesitaba
+
+**Qué harías con más tiempo / qué le falta para producción.**
+
+del lado del front end soy de usar react-query, que es una librería que ayuda mucho para ser mas minucioso a la hora de
+los requests, además retorna propiedades de loading / success / failure y evita crear useState para manejar cada estado del
+request y maneja cache lo cual le agrega un componente de optimización el cuál no consideramos para esta tarea.
+
+del lado del back, no manejamos concurrencia, podría pasar que pedidos concurrentes violen algunas de las normas de negocio
+por no usar transacciones algún otro tipo de manejo de varios procesos intentando modificar o aplicar algún cambio a la vez
