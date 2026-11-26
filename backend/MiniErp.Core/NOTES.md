@@ -100,3 +100,33 @@ Agregué una validación con `Any()` para comprobar que ningún artículo tenga 
 **Test:**
 
 Verifiqué que al intentar crear un presupuesto con cantidad cero o negativa se lance una `InvalidOperationException`.
+
+### Nueva funcionalidad: Duplicar presupuesto
+
+**Qué se necesitaba:**
+
+Permitir duplicar un presupuesto existente, generando uno nuevo sin modificar el original.
+
+El presupuesto duplicado debe tener:
+- Número nuevo.
+- Fecha actual.
+- Mismo cliente y plazo de validez.
+- Mismos artículos, cantidades y descuentos.
+- Precios unitarios y alícuotas de IVA actualizados según los valores vigentes de cada artículo.
+- Estado inicial `Borrador`.
+
+**Cómo lo solucioné:**
+
+- Agregué el endpoint `POST /api/Presupuestos/{id}/duplicar` en `PresupuestosController`.
+- Implementé `DuplicarAsync(int id)` en `PresupuestoService`.
+- Recupero el presupuesto original con sus artículos.
+- Creo nuevos ítems copiando `ArticuloId`, `Cantidad` y `DescuentoPct`.
+- Reutilizo `CrearAsync()` para aprovechar las validaciones y la lógica existente de creación, numeración y actualización de precios.
+
+**Test:**
+
+- Dupliqué el presupuesto ID 2, que estaba en estado `Facturado`.
+- Se generó correctamente el presupuesto ID 3, número 3.
+- Se conservó el cliente, los artículos, las cantidades, los descuentos y la validez.
+- El nuevo presupuesto quedó en estado `Borrador`.
+- La respuesta del endpoint fue HTTP 200 OK.

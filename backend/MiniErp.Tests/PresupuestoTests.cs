@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using MiniErp.Core.Data;
 using MiniErp.Core.Models;
 using MiniErp.Core.Services;
@@ -118,6 +113,66 @@ namespace MiniErp.Tests
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => presupuestos.CrearAsync(cliente.Id, 30, items)
             );
+        }
+
+        [Fact]
+        public async Task DuplicarPresupuesto_ActualizaPrecios_YConservaDatosOriginales()
+        {
+            /*
+             Comprueba que al duplicar un presupuesto se genera uno nuevo, 
+             se conservan los datos originales (cliente, cantidades y descuentos), 
+             se actualizan los precios y las alícuotas de IVA según los valores vigentes de los artículos 
+             y el presupuesto original permanece sin modificaciones.
+             */
+            var (_, db) = Armar();
+            var numeracion = new NumeracionService(db);
+            var presupuestos = new PresupuestoService(db, numeracion);
+
+            var (art, original) = await SeedPresupuesto(
+                db,
+                stock: 100,
+                cantidad: 3,
+                precio: 100m
+            );
+
+            // Configuramos descuento en el presupuesto original.
+            original.Items.First().DescuentoPct = 15m;
+            await db.SaveChangesAsync();
+
+            // Actualizamos el precio y el IVA del artículo.
+            art.PrecioUnitario = 120m;
+            art.AlicuotaIva = 10m;
+            await db.SaveChangesAsync();
+
+            var duplicado = await presupuestos.DuplicarAsync(original.Id);
+
+            // Nuevo presupuesto.
+            Assert.NotEqual(original.Id, duplicado.Id);
+            Assert.Equal(2, duplicado.Numero);
+            Assert.Equal(EstadoPresupuesto.Borrador, duplicado.Estado);
+            Assert.Equal(original.ClienteId, duplicado.ClienteId);
+            Assert.Equal(original.ValidezDias, duplicado.ValidezDias);
+
+            // Fecha actual.
+            Assert.True(
+                (DateTime.UtcNow - duplicado.Fecha).Duration() < TimeSpan.FromMinutes(1)
+            );
+
+            // Datos de los artículos.
+            var itemOriginal = original.Items.Single();
+            var itemDuplicado = duplicado.Items.Single();
+
+            Assert.NotEqual(itemOriginal.Id, itemDuplicado.Id);
+            Assert.Equal(itemOriginal.ArticuloId, itemDuplicado.ArticuloId);
+            Assert.Equal(3, itemDuplicado.Cantidad);
+            Assert.Equal(15m, itemDuplicado.DescuentoPct);
+
+            // Precios y alícuotas actualizados.
+            Assert.Equal(100m, itemOriginal.PrecioUnitario);
+            Assert.Equal(21m, itemOriginal.AlicuotaIva);
+
+            Assert.Equal(120m, itemDuplicado.PrecioUnitario);
+            Assert.Equal(10m, itemDuplicado.AlicuotaIva);
         }
     }
 }

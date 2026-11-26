@@ -90,6 +90,27 @@ public class PresupuestoService
         return presupuesto;
     }
 
+    public async Task<Presupuesto> DuplicarAsync(int id)
+    {
+        var original = await _db.Presupuestos
+            .Include(p => p.Items)
+            .FirstOrDefaultAsync(p => p.Id == id)
+            ?? throw new InvalidOperationException("El presupuesto no existe.");
+
+        var items = original.Items.Select(i => new PresupuestoItem
+        {
+            ArticuloId = i.ArticuloId,
+            Cantidad = i.Cantidad,
+            DescuentoPct = i.DescuentoPct
+        }).ToList();
+
+        return await CrearAsync(
+            original.ClienteId,
+            original.ValidezDias,
+            items
+        );
+    }
+
     public async Task<Presupuesto?> ObtenerAsync(int id)
     {
         return await _db.Presupuestos
@@ -105,7 +126,7 @@ public class PresupuestoService
             .Include(p => p.Cliente)
             .Include(p => p.Items)
                 .ThenInclude(i => i.Articulo)
-            .Where(p => p.Estado != EstadoPresupuesto.Borrador)
+            // .Where(p => p.Estado != EstadoPresupuesto.Borrador)
             .OrderByDescending(p => p.Numero)
             .ToListAsync();
     }
