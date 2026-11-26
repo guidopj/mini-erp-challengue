@@ -53,6 +53,13 @@ public class PresupuestoService
         if (items.Count == 0)
             throw new InvalidOperationException("El presupuesto debe tener al menos un artículo.");
 
+        // Validar que el cliente exista.
+        var clienteExiste = await _db.Clientes
+            .AnyAsync(c => c.Id == clienteId);
+
+        if (!clienteExiste)
+            throw new InvalidOperationException($"El cliente {clienteId} no existe.");
+
         if (items.Any(i => i.Cantidad <= 0))
             throw new InvalidOperationException("La cantidad de los artículos debe ser mayor a cero.");
 

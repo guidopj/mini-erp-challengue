@@ -174,5 +174,46 @@ namespace MiniErp.Tests
             Assert.Equal(120m, itemDuplicado.PrecioUnitario);
             Assert.Equal(10m, itemDuplicado.AlicuotaIva);
         }
+
+        [Fact]
+        public async Task CrearPresupuesto_ClienteInexistente_LanzaExcepcion()
+        {
+            var (_, db) = Armar();
+            var numeracion = new NumeracionService(db);
+            var presupuestos = new PresupuestoService(db, numeracion);
+
+            var items = new List<PresupuestoItem>
+    {
+        new() { ArticuloId = 1, Cantidad = 1 }
+    };
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => presupuestos.CrearAsync(999, 30, items)
+            );
+
+            Assert.Equal("El cliente 999 no existe.", exception.Message);
+        }
+
+        [Fact]
+        public async Task CrearPresupuesto_ClienteExistente_AsociaCliente()
+        {
+            var (_, db) = Armar();
+            var presupuestos = new PresupuestoService(db, new NumeracionService(db));
+
+            var (art, _) = await SeedPresupuesto(db, stock: 100, cantidad: 1);
+
+            var cliente = await db.Clientes.FirstAsync();
+
+            var resultado = await presupuestos.CrearAsync(
+                cliente.Id,
+                30,
+                new List<PresupuestoItem>
+                {
+            new() { ArticuloId = art.Id, Cantidad = 1 }
+                }
+            );
+
+            Assert.Equal(cliente.Id, resultado.ClienteId);
+        }
     }
 }

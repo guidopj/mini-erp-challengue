@@ -130,3 +130,25 @@ El presupuesto duplicado debe tener:
 - Se conservó el cliente, los artículos, las cantidades, los descuentos y la validez.
 - El nuevo presupuesto quedó en estado `Borrador`.
 - La respuesta del endpoint fue HTTP 200 OK.
+
+### Validación de cliente al crear un presupuesto
+
+**Qué pasaba:**
+
+Se podía intentar crear un presupuesto utilizando un `ClienteId` que no existía en la base de datos.
+
+**Por qué pasaba:**
+
+El método `CrearAsync` no verificaba previamente la existencia del cliente.
+
+**Cómo lo solucioné:**
+
+Agregué una validación en `PresupuestoService.CrearAsync` utilizando `AnyAsync()` para comprobar que el cliente
+exista antes de continuar con la creación.
+
+Si el cliente no existe, se lanza una `InvalidOperationException` con el mensaje correspondiente.
+
+**Tests realizados:**
+
+- `CrearPresupuesto_ClienteInexistente_LanzaExcepcion`: verifica que se lance una excepción cuando el cliente no existe.
+- `CrearPresupuesto_ClienteExistente_AsociaCliente`: verifica que el presupuesto quede asociado al cliente existente.
